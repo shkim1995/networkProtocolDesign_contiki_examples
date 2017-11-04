@@ -80,7 +80,7 @@ broadcast_recv26(struct broadcast_conn *c, const rimeaddr_t *from)
 			seqBefore26 = seq;
 		}
 		rate = ((double)numRecv26)/((double)numSent26);	
-		printf("rssi : %d, lqi : %d, rate = %d\n", last_rssi, last_lqi, numRecv26*100/numSent26);
+		printf("rssi : %d, lqi : %d, rate = %d\n", last_rssi, last_lqi, 100 - numRecv26*100/numSent26);
 	}
 
 }
