@@ -27,7 +27,8 @@ obj_sky/contikimac.o: ../../core/net/mac/contikimac.c \
  ../../core/./net/rime/polite.h ../../core/./net/rime/rimestats.h \
  ../../core/./net/rime/rmh.h ../../core/./net/rime/route.h \
  ../../core/./net/rime/rucb.h ../../core/./net/rime/timesynch.h \
- ../../core/./net/rime/trickle.h ../../core/./sys/compower.h
+ ../../core/./net/rime/trickle.h ../../core/./sys/compower.h \
+ ../../core/./net/mac/phase.h
 ../../core/net/mac/contikimac.c :
  ../../platform/sky/./contiki-conf.h ../../platform/sky/./platform-conf.h :
  ../../cpu/msp430/./msp430def.h ../../core/./dev/leds.h :
@@ -58,3 +59,4 @@ obj_sky/contikimac.o: ../../core/net/mac/contikimac.c \
  ../../core/./net/rime/rmh.h ../../core/./net/rime/route.h :
  ../../core/./net/rime/rucb.h ../../core/./net/rime/timesynch.h :
  ../../core/./net/rime/trickle.h ../../core/./sys/compower.h :
+ ../../core/./net/mac/phase.h :

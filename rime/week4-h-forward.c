@@ -51,64 +51,58 @@
 #include <stdio.h>
 #include <string.h>
 
-struct message {
-  uint8_t seqno;
+#include "week4-h.h"
 
-  uint8_t seqno1;
-  uint8_t seqno2;
-  uint8_t seqno3;
-  uint8_t seqno4;
-  uint8_t seqno5;
-  uint8_t seqno6;
-  uint8_t seqno7;
-};
 
 /*---------------------------------------------------------------------------*/
-PROCESS(example_broadcast_process, "Broadcast example");
-AUTOSTART_PROCESSES(&example_broadcast_process);
+PROCESS(example_broadcast_process2, "Broadcast example");
+AUTOSTART_PROCESSES(&example_broadcast_process2);
 /*---------------------------------------------------------------------------*/
 
-static void
+	static void
 broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 {
-  struct message msg;
-  memcpy(&msg, packetbuf_dataptr(), sizeof(struct message));
+	struct message msg;
+	memcpy(&msg, packetbuf_dataptr(), sizeof(struct message));
 
-  printf("broadcast message received from %d.%d: seqno ( %u )\n", from->u8[0], from->u8[1], msg.seqno);
+	printf("broadcast message received from %d.%d: seqno ( %u )\n", from->u8[0], from->u8[1], msg.seqno);
 
 }
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
 static struct broadcast_conn broadcast;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_broadcast_process, ev, data)
+PROCESS_THREAD(example_broadcast_process2, ev, data)
 {
-  static struct etimer et;
-  static uint8_t seqno = 1;
 
-  struct message msg;
 
-  PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
 
-  PROCESS_BEGIN();
+	static struct etimer et;
+	static uint8_t seqno;
 
-  broadcast_open(&broadcast, 129, &broadcast_call);
+	struct message msg;
 
-  while(1) {
+	PROCESS_EXITHANDLER(broadcast_close(&broadcast);)
 
-    /* Delay 2-4 seconds */
-    etimer_set(&et, CLOCK_SECOND * 4 + random_rand() % (CLOCK_SECOND * 4));
+		PROCESS_BEGIN();
 
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+	broadcast_open(&broadcast, 129, &broadcast_call);
 
-    msg.seqno = seqno;
+	while(1) {
 
-    //packetbuf_copyfrom("Hello", 6);
-    packetbuf_copyfrom(&msg, sizeof(struct message));
-    broadcast_send(&broadcast);
-    printf("broadcast message sent\n");
-    seqno++;
-  }
+		/* Delay 2-4 seconds */
+		etimer_set(&et, CLOCK_SECOND * 4 + random_rand() % (CLOCK_SECOND * 4));
 
-  PROCESS_END();
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+		msg.seqno = seqno;
+
+		//packetbuf_copyfrom("Hello", 6);
+		packetbuf_copyfrom(&msg, sizeof(struct message));
+		broadcast_send(&broadcast);
+		printf("broadcast message sent\n");
+		seqno++;
+	}
+
+	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
