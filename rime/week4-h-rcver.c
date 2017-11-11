@@ -10,12 +10,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#define DST 4
+#define DST 6
 #define SRC 1
-#define TTL 4
+#define TTL 8
 
-#define DEBUG_PATH 1
-#define DEBUG_DUP_TTL 1
+#define DEBUG_PATH 0
+#define DEBUG_DUP 0
+#define DEBUG_TTL 0
 
 struct message{
 	uint16_t src;
@@ -59,36 +60,39 @@ broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
 		
 		seqBefore = msg.seqno;
 		
-		if(msg.ttl==0){ // ttl out : do nothing
-#if DEBUG_DUP_TTL
-			printf("DEBUG : ttl out of time \n");
+	
+		
+			
+		if(msg.dst == node_id){ // destination node
+			printf("broadcast message #%d recieved at %d\n", msg.seqno, node_id);				
+#if DEBUG_PATH
+			print_path(&(msg.path[0]), msg.head);
 #endif
 		}
-		
-		else{
-			
-			if(msg.dst == node_id){ // destination node
-				printf("broadcast message #%d recieved at %d\n", msg.seqno, node_id);				
-#if DEBUG_PATH
-				print_path(&(msg.path[0]), msg.head);
-#endif
-			}
 
-			else{ // forwarding node
-				printf("forwarding message #%d\n", msg.seqno);				
-				msg.ttl = msg.ttl - 1;
-#if DEBUG_PATH
-				msg.head = msg.head + 1;
-				msg.path[msg.head] = node_id;
+		else{ // forwarding node
+
+			if(msg.ttl==0){ // ttl out : do nothing
+#if DEBUG_TTL
+				printf("DEBUG : ttl out of time \n");
 #endif
-				packetbuf_copyfrom(&msg, sizeof(struct message));
-				process_post_synch(&example_broadcast_process3, PROCESS_EVENT_CONTINUE, NULL);
+				return;
 			}
+	
+			printf("forwarding message #%d\n", msg.seqno);				
+			msg.ttl = msg.ttl - 1;
+#if DEBUG_PATH
+			msg.head = msg.head + 1;
+			msg.path[msg.head] = node_id;
+#endif
+			packetbuf_copyfrom(&msg, sizeof(struct message));
+			process_post_synch(&example_broadcast_process3, PROCESS_EVENT_CONTINUE, NULL);
 		}
 	}
+	
 	else{ //duplication : do nothing
-#if DEBUG_DUP_TTL
-		printf("DEBUG : duplication \n");
+#if DEBUG_DUP
+		printf("DEBUG : duplication from node %d\n", msg.path[msg.head]);
 #endif
 	}
 
@@ -117,17 +121,18 @@ PROCESS_THREAD(example_broadcast_process3, ev, data)
 	PROCESS_BEGIN();
 
 	broadcast_open(&broadcast, 129, &broadcast_call);
-
-	//first packet
-	packetbuf_copyfrom(&msg, sizeof(struct message));
-	broadcast_send(&broadcast);
-	printf("broadcast message #%d sent from %d to %d\n", msg.seqno, msg.src, msg.dst);
-	seqno++;
+	if(node_id==1){
+		//first packet
+		packetbuf_copyfrom(&msg, sizeof(struct message));
+		broadcast_send(&broadcast);
+		printf("broadcast message #%d sent from %d to %d\n", msg.seqno, msg.src, msg.dst);
+		seqno++;
+	}
 	
 	while(1) {
 		
 		if(node_id == 1){ // if sender
-			etimer_set(&et, CLOCK_SECOND * 4 + random_rand() % (CLOCK_SECOND * 4));
+			etimer_set(&et, CLOCK_SECOND * 4);
 		}
 		
 		PROCESS_WAIT_EVENT();
